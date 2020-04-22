@@ -91,8 +91,11 @@ class PyNepSysTest(unittest.TestCase):
         self.assertEqual(outlet.device_id, 'base_Var1')
         self.assertEqual(outlet.state, 'RD120W')
         self.assertFalse(outlet.is_off())
-        self.assertFalse(outlet.is_on())
+        self.assertTrue(outlet.is_on())
         self.assertFalse(outlet.is_auto())
+        outlet = apex.outlets['Vortech_East']
+        self.assertEqual(outlet.state, 'TBL')
+        self.assertTrue(outlet.is_on())
         outlet = apex.outlets['18_1']
         self.assertEqual(outlet.device_id, '18_1')
         self.assertEqual(outlet.output_id, '95')

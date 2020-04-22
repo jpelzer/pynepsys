@@ -151,25 +151,17 @@ class Outlet(object):
         self.state = 'AUTO'
 
     def is_on(self):
-        """ :return true if the outlet has been forced on, or if in auto mode and it was on at
-        last update. Immediately after enabling auto mode, and until data is refetched, outlet
-        will return false for both is_on() and is_off()."""
-        return self._get_on_off() == 'ON'
+        """ :return true if the outlet is not forced off (OFF) and not automatically off (AOF). ON, AON,
+        and any analog profile other than 'AUTO' will be treated as truthy for is_on.
+        Immediately after enabling auto mode via :py:meth:enable_auto(), and until data is refetched,
+        outlet will return false for both is_on() and is_off()."""
+        return self.state not in ['OFF', 'AOF', 'AUTO']
 
     def is_off(self):
         """ :return true if the outlet has been forced off, or if in auto mode and it was off at
         last update. Immediately after enabling auto mode, and until data is refetched, outlet
         will return false for both is_on() and is_off()."""
-        return self._get_on_off() == 'OFF'
-
-    def _get_on_off(self):
-        """ :returns one of ON, OFF, UNKNOWN"""
-        if self.state in ['AON', 'ON']:
-            return 'ON'
-        elif self.state in ['AOF', 'OFF']:
-            return 'OFF'
-        else:
-            return 'UNKNOWN'
+        return self.state in ['AOF', 'OFF']
 
     def force_on(self):
         """ Forces the outlet on, disabling auto mode. """
