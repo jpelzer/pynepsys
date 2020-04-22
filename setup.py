@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="pynepsys",
-    version="1.0.0",
+    version="1.1.0",
     description="Python library for Neptune Systems Apex",
     long_description=README,
     long_description_content_type="text/markdown",
