@@ -50,12 +50,16 @@ class Apex(object):
         Connect to the Apex and pull down/refresh all information. New probes/outlets will be
         added. Renamed entries will not be detected, the legacy names will persist until
         recreation of Apex object. Holding a reference to a probe or outlet and calling this
-        method will result in the state of that item being updated.
+        method will result in the state of that item being updated. Can raise an ApexException
+        if there is an issue communicating with the Apex.
         """
-        async with httpx.AsyncClient() as client:
-            response = await client.get("http://%s/cgi-bin/status.xml" % self.ip_address,
-                                        auth=(self._user, self._password))
-        self._parse_xml_state(response.content)
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get("http://%s/cgi-bin/status.xml" % self.ip_address,
+                                            auth=(self._user, self._password))
+            self._parse_xml_state(response.content)
+        except Exception as e:
+            raise ApexException from e
         return None
 
     def _parse_xml_state(self, xml_string):
@@ -92,7 +96,8 @@ class Apex(object):
 
     async def update_outlet(self, outlet):
         """ Connect to the Apex and set the given outlet's state. Currently only supports non-profile
-        states, so ON, OFF, and AUTO. """
+        states, so ON, OFF, and AUTO. Can raise an ApexException if there is an issue communicating
+        with the Apex."""
         assert type(outlet) is Outlet, "outlet is not an Outlet instance: %r" % outlet
         state_id = 0  # Default to 'AUTO'
         if not outlet.is_auto():
@@ -107,9 +112,12 @@ class Apex(object):
             outlet.name + '_state': state_id
         }
         async with httpx.AsyncClient() as client:
-            await client.post("http://%s/status.sht" % self.ip_address,
-                              auth=(self._user, self._password),
-                              data=payload)
+            try:
+                await client.post("http://%s/status.sht" % self.ip_address,
+                                  auth=(self._user, self._password),
+                                  data=payload)
+            except Exception as e:
+                raise ApexException() from e
 
 
 class Probe(object):
@@ -170,3 +178,8 @@ class Outlet(object):
     def force_off(self):
         """ Forces the outlet off, disabling auto mode. """
         self.state = 'OFF'
+
+
+class ApexException(Exception):
+    """Generic exception to wrap any network/parse issues talking to Apex"""
+    pass
